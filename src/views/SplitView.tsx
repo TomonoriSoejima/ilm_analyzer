@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Database, LayoutDashboard, Cog, Activity } from 'lucide-react';
+import { AlertTriangle, Database, LayoutDashboard, Cog, Activity, Clock } from 'lucide-react';
 import { IndexCard } from '../components/IndexCard';
 import { PolicyDetails } from '../components/PolicyDetails';
 import { PolicySummary } from '../components/PolicySummary';
@@ -10,6 +10,7 @@ import { Dashboard } from './Dashboard';
 import { ShardsView } from './ShardsView';
 import { SettingsView } from './SettingsView';
 import { IngestPipelineView } from './IngestPipelineView';
+import { ILMView } from './ILMView';
 import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs } from '../types';
 
 export function SplitView() {
@@ -142,6 +143,17 @@ export function SplitView() {
                 <Activity className="w-4 h-4 inline-block mr-2" />
                 Pipeline
               </Link>
+              <Link
+                to="/ilm"
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  location.pathname === '/ilm'
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Clock className="w-4 h-4 inline-block mr-2" />
+                ILM
+              </Link>
               <div className="flex items-center gap-4">
                 <ThemeToggle />
                 <button
@@ -225,6 +237,7 @@ export function SplitView() {
             </div>
           )} />
           <Route path="/pipeline" element={nodesStats && <IngestPipelineView stats={nodesStats} pipelines={pipelines || undefined} />} />
+          <Route path="/ilm" element={<ILMView policies={policies} />} />
         </Routes>
       </div>
     </div>
