@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build output
+dist
+
+# Version control
+.git
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.*
+
+# Development files
+*.md
+.vscode
+.idea
+*.log
+.DS_Store
