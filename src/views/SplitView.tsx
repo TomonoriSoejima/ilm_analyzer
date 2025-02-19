@@ -36,6 +36,7 @@ export function SplitView() {
     nodesStatsData?: NodesStatsResponse,
     pipelinesData?: PipelineConfigs
   ) => {
+    console.log('handleDataLoaded called with settings:', settingsData);
     setErrors(errorsData);
     setPolicies(policiesData);
     if (version) {
@@ -48,6 +49,8 @@ export function SplitView() {
       setAllocation(allocationData);
     }
     if (settingsData) {
+      console.log('Setting settings state with:', settingsData);
+      console.log('Settings keys:', Object.keys(settingsData));
       setSettings(settingsData);
     }
     if (nodesStatsData) {
@@ -57,6 +60,12 @@ export function SplitView() {
       setPipelines(pipelinesData);
     }
   };
+
+  // Debug log whenever settings changes
+  React.useEffect(() => {
+    console.log('Settings state updated:', settings);
+    console.log('Settings keys:', settings ? Object.keys(settings) : 'null');
+  }, [settings]);
 
   if (!errors || !policies) {
     return (
@@ -237,7 +246,9 @@ export function SplitView() {
           } />
           <Route path="/dashboard" element={<Dashboard errors={errors} policies={policies} />} />
           <Route path="/shards" element={<ShardsView shards={shards} allocation={allocation} />} />
-          <Route path="/settings" element={settings ? <SettingsView settings={settings} /> : (
+          <Route path="/settings" element={settings ? (
+            <SettingsView settings={settings} />
+          ) : (
             <div className="text-center py-12">
               <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">

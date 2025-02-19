@@ -20,6 +20,16 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  const safeSetItem = (key: string, value: any) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (err) {
+      console.warn(`Failed to store ${key} in localStorage:`, err);
+      return false;
+    }
+  };
+
   const processZipFile = async (file: File) => {
     try {
       setIsLoading(true);
@@ -64,7 +74,7 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
           } else if (normalizedPath.includes('allocation_explain.json')) {
             allocationJson = json;
             foundFiles.push('Allocation Info');
-          } else if (normalizedPath.includes('settings.json')) {
+          } else if (normalizedPath === 'settings.json' || normalizedPath.endsWith('/settings.json')) {
             settingsJson = json;
             foundFiles.push('Settings Info');
           } else if (normalizedPath.includes('nodes_stats.json')) {
@@ -75,13 +85,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
             foundFiles.push('Pipelines');
           }
         } catch (err) {
-          console.warn(`Failed to process file ${path}:`, err);
+          console.error(`Failed to process file ${path}:`, err);
         }
-      }
-
-      // Show informational message about found files
-      if (foundFiles.length > 0) {
-        console.log('Found files:', foundFiles.join(', '));
       }
 
       // Show warning if ILM files are missing but proceed anyway
@@ -106,9 +111,9 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
               const json = JSON.parse(content);
 
               if (normalizedPath.includes('index_templates.json')) {
-                localStorage.setItem('index_templates', JSON.stringify(json));
+                safeSetItem('index_templates', json);
               } else if (normalizedPath.includes('alias.json') || normalizedPath.includes('aliases.json')) {
-                localStorage.setItem('aliases', JSON.stringify(json));
+                safeSetItem('aliases', json);
               }
             } catch (err) {
               console.warn(`Failed to process optional file ${path}:`, err);
@@ -116,11 +121,6 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
           }
         }
       }, 0);
-
-      // Store settings in localStorage for the modal to access
-      if (settingsJson) {
-        localStorage.setItem('settings', JSON.stringify(settingsJson));
-      }
 
       // Call onDataLoaded with whatever files we found
       onDataLoaded(
@@ -189,13 +189,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       ]);
 
       // Store templates and aliases in localStorage
-      localStorage.setItem('index_templates', JSON.stringify(templatesJson));
-      localStorage.setItem('aliases', JSON.stringify(aliasesJson));
-      
-      // Store settings in localStorage
-      if (settingsJson) {
-        localStorage.setItem('settings', JSON.stringify(settingsJson));
-      }
+      safeSetItem('index_templates', templatesJson);
+      safeSetItem('aliases', aliasesJson);
 
       onDataLoaded(
         errorsJson, 

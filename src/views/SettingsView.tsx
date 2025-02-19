@@ -9,6 +9,12 @@ interface SettingsViewProps {
 export function SettingsView({ settings }: SettingsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Debug log when component mounts or settings prop changes
+  React.useEffect(() => {
+    console.log('SettingsView received settings:', settings);
+    console.log('Settings keys:', Object.keys(settings));
+  }, [settings]);
+
   // Filter settings based on search term
   const filteredSettings = Object.entries(settings).reduce((acc, [key, value]) => {
     if (key.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -16,6 +22,11 @@ export function SettingsView({ settings }: SettingsViewProps) {
     }
     return acc;
   }, {} as Record<string, any>);
+
+  // Debug log filtered settings
+  React.useEffect(() => {
+    console.log('Filtered settings keys:', Object.keys(filteredSettings));
+  }, [filteredSettings]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
