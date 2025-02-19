@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Database, LayoutDashboard, Cog, Activity, Clock } from 'lucide-react';
+import { AlertTriangle, Database, LayoutDashboard, Cog, Activity, Clock, Server } from 'lucide-react';
 import { IndexCard } from '../components/IndexCard';
 import { PolicyDetails } from '../components/PolicyDetails';
 import { PolicySummary } from '../components/PolicySummary';
@@ -9,6 +9,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { Dashboard } from './Dashboard';
 import { ShardsView } from './ShardsView';
 import { SettingsView } from './SettingsView';
+import { NodesView } from './NodesView';
 import { IngestPipelineView } from './IngestPipelineView';
 import { ILMView } from './ILMView';
 import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs } from '../types';
@@ -133,6 +134,17 @@ export function SplitView() {
                 Settings
               </Link>
               <Link
+                to="/nodes"
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  location.pathname === '/nodes'
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Server className="w-4 h-4 inline-block mr-2" />
+                Nodes
+              </Link>
+              <Link
                 to="/pipeline"
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   location.pathname === '/pipeline'
@@ -236,6 +248,21 @@ export function SplitView() {
               </p>
             </div>
           )} />
+          <Route path="/nodes" element={
+            nodesStats ? (
+              <NodesView nodesData={nodesStats} />
+            ) : (
+              <div className="text-center py-12">
+                <Server className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                  Node Information Not Available
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  No node information is available in the uploaded diagnostic data.
+                </p>
+              </div>
+            )
+          } />
           <Route path="/pipeline" element={nodesStats && <IngestPipelineView stats={nodesStats} pipelines={pipelines || undefined} />} />
           <Route path="/ilm" element={<ILMView policies={policies} />} />
         </Routes>
