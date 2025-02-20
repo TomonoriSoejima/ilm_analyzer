@@ -230,7 +230,6 @@ export interface NodeStats {
       [key: string]: PipelineStats;
     };
   };
-  // Add other node stats as needed
 }
 
 export interface NodesStatsResponse {
@@ -270,4 +269,78 @@ export interface Pipeline {
 
 export interface PipelineConfigs {
   [key: string]: Pipeline;
+}
+
+export interface MLDetector {
+  detector_description: string;
+  detector_index: number;
+  field_name: string;
+  partition_field_name?: string;
+  use_null: boolean;
+  function: string;
+}
+
+export interface MLAnalysisConfig {
+  bucket_span: string;
+  detectors: MLDetector[];
+  influencers: string[];
+  model_prune_window: string;
+}
+
+export interface MLDatafeedConfig {
+  authorization: {
+    roles: string[];
+  };
+  chunking_config: {
+    mode: string;
+  };
+  datafeed_id: string;
+  delayed_data_check_config: {
+    enabled: boolean;
+  };
+  indices: string[];
+  indices_options: {
+    allow_no_indices: boolean;
+    expand_wildcards: string[];
+    ignore_throttled: boolean;
+    ignore_unavailable: boolean;
+  };
+  job_id: string;
+  max_empty_searches: number;
+  query: any;
+  query_delay: string;
+  scroll_size: number;
+}
+
+export interface MLJob {
+  allow_lazy_open: boolean;
+  analysis_config: MLAnalysisConfig;
+  analysis_limits: {
+    categorization_examples_limit: number;
+    model_memory_limit: string;
+  };
+  create_time: number;
+  custom_settings: {
+    created_by: string;
+    custom_urls: any[];
+  };
+  daily_model_snapshot_retention_after_days: number;
+  data_description: {
+    time_field: string;
+    time_format: string;
+  };
+  datafeed_config: MLDatafeedConfig;
+  description: string;
+  groups: string[];
+  job_id: string;
+  job_type: string;
+  job_version: string;
+  model_snapshot_id: string;
+  model_snapshot_retention_days: number;
+  results_index_name: string;
+}
+
+export interface MLAnomalyDetectors {
+  count: number;
+  jobs: MLJob[];
 }

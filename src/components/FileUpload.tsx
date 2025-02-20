@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Upload, FileUp, Loader2, Database } from 'lucide-react';
 import JSZip from 'jszip';
-import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs } from '../types';
+import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs, MLAnomalyDetectors } from '../types';
 
 interface FileUploadProps {
   onDataLoaded: (
@@ -12,7 +12,8 @@ interface FileUploadProps {
     allocation?: AllocationExplanation,
     settings?: Record<string, any>,
     nodesStats?: NodesStatsResponse,
-    pipelines?: PipelineConfigs
+    pipelines?: PipelineConfigs,
+    mlDetectors?: MLAnomalyDetectors
   ) => void;
 }
 
@@ -35,6 +36,7 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       setIsLoading(true);
       setError(null);
 
+      console.log('Starting to process ZIP file...');
       const zip = new JSZip();
       const contents = await zip.loadAsync(file);
       
@@ -46,7 +48,11 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       let settingsJson = null;
       let nodesStatsJson = null;
       let pipelinesJson = null;
+      let mlDetectorsJson = null;
       const foundFiles: string[] = [];
+
+      // Debug: Log all files in the ZIP
+      console.log('Files in ZIP:', Object.keys(contents.files));
 
       // Process all files
       for (const [path, zipEntry] of Object.entries(contents.files)) {
@@ -57,37 +63,59 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
 
         try {
           const content = await zipEntry.async('string');
-          const json = JSON.parse(content);
+          
+          // Debug: Log file content length
+          console.log(`File ${normalizedPath} content length:`, content.length);
+          
+          try {
+            const json = JSON.parse(content);
+            console.log(`Successfully parsed JSON for ${normalizedPath}`);
 
-          if (normalizedPath.includes('ilm_explain_only_errors.json')) {
-            errorsJson = json;
-            foundFiles.push('ILM Errors');
-          } else if (normalizedPath.includes('ilm_policies.json')) {
-            policiesJson = json;
-            foundFiles.push('ILM Policies');
-          } else if (normalizedPath.includes('version.json')) {
-            versionJson = json;
-            foundFiles.push('Version Info');
-          } else if (normalizedPath.includes('shards.json')) {
-            shardsJson = json;
-            foundFiles.push('Shards Info');
-          } else if (normalizedPath.includes('allocation_explain.json')) {
-            allocationJson = json;
-            foundFiles.push('Allocation Info');
-          } else if (normalizedPath === 'settings.json' || normalizedPath.endsWith('/settings.json')) {
-            settingsJson = json;
-            foundFiles.push('Settings Info');
-          } else if (normalizedPath.includes('nodes_stats.json')) {
-            nodesStatsJson = json;
-            foundFiles.push('Nodes Stats');
-          } else if (normalizedPath.includes('pipelines.json')) {
-            pipelinesJson = json;
-            foundFiles.push('Pipelines');
+            if (normalizedPath.includes('ilm_explain_only_errors.json')) {
+              errorsJson = json;
+              foundFiles.push('ILM Errors');
+            } else if (normalizedPath.includes('ilm_policies.json')) {
+              policiesJson = json;
+              foundFiles.push('ILM Policies');
+            } else if (normalizedPath.includes('version.json')) {
+              versionJson = json;
+              foundFiles.push('Version Info');
+            } else if (normalizedPath.includes('shards.json')) {
+              shardsJson = json;
+              foundFiles.push('Shards Info');
+            } else if (normalizedPath.includes('allocation_explain.json')) {
+              allocationJson = json;
+              foundFiles.push('Allocation Info');
+            } else if (normalizedPath === 'settings.json' || normalizedPath.endsWith('/settings.json')) {
+              settingsJson = json;
+              foundFiles.push('Settings Info');
+            } else if (normalizedPath.includes('nodes_stats.json')) {
+              nodesStatsJson = json;
+              foundFiles.push('Nodes Stats');
+            } else if (normalizedPath.includes('pipelines.json')) {
+              pipelinesJson = json;
+              foundFiles.push('Pipelines');
+            } else if (normalizedPath.includes('ml_anomaly_detectors.json')) {
+              console.log('Found ML anomaly detectors file:', normalizedPath);
+              console.log('ML file content preview:', content.substring(0, 200));
+              mlDetectorsJson = json;
+              console.log('Successfully parsed ML detectors JSON:', {
+                count: json.count,
+                jobsCount: json.jobs?.length
+              });
+              foundFiles.push('ML Anomaly Detectors');
+            }
+          } catch (parseError) {
+            console.error(`Failed to parse JSON for ${normalizedPath}:`, parseError);
           }
         } catch (err) {
           console.error(`Failed to process file ${path}:`, err);
         }
       }
+
+      // Debug: Log found files and ML data
+      console.log('Found files:', foundFiles);
+      console.log('ML Detectors data:', mlDetectorsJson);
 
       // Show warning if ILM files are missing but proceed anyway
       if (!errorsJson || !policiesJson) {
@@ -123,6 +151,7 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
       }, 0);
 
       // Call onDataLoaded with whatever files we found
+      console.log('Calling onDataLoaded with ML data:', mlDetectorsJson);
       onDataLoaded(
         errorsJson, 
         policiesJson, 
@@ -131,7 +160,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         allocationJson, 
         settingsJson,
         nodesStatsJson,
-        pipelinesJson
+        pipelinesJson,
+        mlDetectorsJson
       );
     } catch (err) {
       console.error('ZIP processing error:', err);
@@ -200,7 +230,8 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
         allocationJson, 
         settingsJson,
         nodesStatsJson,
-        pipelinesJson
+        pipelinesJson,
+        null // ML data is only available from diagnostic ZIP
       );
     } catch (err) {
       setError('Failed to load demo data');

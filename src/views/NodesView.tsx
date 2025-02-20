@@ -12,6 +12,25 @@ interface NodeAttributesProps {
   attributes: Record<string, any>;
 }
 
+const getRoleColor = (role: string) => {
+  switch (role) {
+    case 'data_hot':
+      return 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300';
+    case 'data_warm':
+      return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300';
+    case 'data_cold':
+      return 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300';
+    case 'data_frozen':
+      return 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300';
+    case 'master':
+      return 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300';
+    case 'ingest':
+      return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300';
+    default:
+      return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200';
+  }
+};
+
 function NodeAttributes({ attributes }: NodeAttributesProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -75,6 +94,31 @@ export function NodesView({ nodesData, masterNode, nodesStats }: NodesViewProps)
         </div>
       </div>
 
+      {/* Role Legend */}
+      <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg">
+        <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Node Roles</h2>
+        <div className="flex flex-wrap gap-2">
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getRoleColor('data_hot')}`}>
+            Hot Data
+          </span>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getRoleColor('data_warm')}`}>
+            Warm Data
+          </span>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getRoleColor('data_cold')}`}>
+            Cold Data
+          </span>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getRoleColor('data_frozen')}`}>
+            Frozen Data
+          </span>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getRoleColor('master')}`}>
+            Master
+          </span>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getRoleColor('ingest')}`}>
+            Ingest
+          </span>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Object.entries(nodes).map(([nodeId, node]) => {
           const isMaster = isMasterNode(nodeId, node.name);
@@ -83,7 +127,7 @@ export function NodesView({ nodesData, masterNode, nodesStats }: NodesViewProps)
             <div 
               key={nodeId} 
               className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden ${
-                isMaster ? 'ring-2 ring-yellow-400 dark:ring-yellow-500' : ''
+                isMaster ? 'ring-2 ring-purple-400 dark:ring-purple-500' : ''
               }`}
             >
               {/* Header */}
@@ -92,11 +136,11 @@ export function NodesView({ nodesData, masterNode, nodesStats }: NodesViewProps)
                   <div className="flex items-center">
                     <div className={`p-2 rounded-lg ${
                       isMaster 
-                        ? 'bg-yellow-100 dark:bg-yellow-900/20' 
+                        ? 'bg-purple-100 dark:bg-purple-900/20' 
                         : 'bg-blue-100 dark:bg-blue-900/20'
                     }`}>
                       {isMaster ? (
-                        <Crown className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                        <Crown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                       ) : (
                         <Server className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                       )}
@@ -104,11 +148,6 @@ export function NodesView({ nodesData, masterNode, nodesStats }: NodesViewProps)
                     <div className="ml-3">
                       <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center">
                         {node.name}
-                        {isMaster && (
-                          <span className="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300">
-                            Master
-                          </span>
-                        )}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {node.ip}
@@ -117,7 +156,7 @@ export function NodesView({ nodesData, masterNode, nodesStats }: NodesViewProps)
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {node.roles?.map(role => (
-                      <span key={role} className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                      <span key={role} className={`px-3 py-1 text-xs font-medium rounded-full ${getRoleColor(role)}`}>
                         {role}
                       </span>
                     ))}

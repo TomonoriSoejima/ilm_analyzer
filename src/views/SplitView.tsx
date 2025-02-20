@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Database, LayoutDashboard, Cog, Activity, Clock, Server } from 'lucide-react';
+import { AlertTriangle, Database, LayoutDashboard, Cog, Activity, Clock, Server, Brain } from 'lucide-react';
 import { IndexCard } from '../components/IndexCard';
 import { PolicyDetails } from '../components/PolicyDetails';
 import { PolicySummary } from '../components/PolicySummary';
@@ -12,7 +12,8 @@ import { SettingsView } from './SettingsView';
 import { NodesView } from './NodesView';
 import { IngestPipelineView } from './IngestPipelineView';
 import { ILMView } from './ILMView';
-import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs } from '../types';
+import { MLAnomalyDetectorsView } from './MLAnomalyDetectorsView';
+import type { ILMErrors, ILMPolicies, VersionInfo, ShardInfo, AllocationExplanation, NodesStatsResponse, PipelineConfigs, MLAnomalyDetectors } from '../types';
 
 export function SplitView() {
   const [errors, setErrors] = useState<ILMErrors | null>(null);
@@ -24,48 +25,33 @@ export function SplitView() {
   const [settings, setSettings] = useState<Record<string, any> | null>(null);
   const [nodesStats, setNodesStats] = useState<NodesStatsResponse | null>(null);
   const [pipelines, setPipelines] = useState<PipelineConfigs | null>(null);
+  const [mlDetectors, setMlDetectors] = useState<MLAnomalyDetectors | null>(null);
   const location = useLocation();
 
   const handleDataLoaded = (
     errorsData: ILMErrors | null, 
     policiesData: ILMPolicies | null, 
-    version?: VersionInfo,
+    version?: VersionInfo, 
     shardsData?: ShardInfo[],
     allocationData?: AllocationExplanation,
     settingsData?: Record<string, any>,
     nodesStatsData?: NodesStatsResponse,
-    pipelinesData?: PipelineConfigs
+    pipelinesData?: PipelineConfigs,
+    mlDetectorsData?: MLAnomalyDetectors
   ) => {
-    console.log('handleDataLoaded called with settings:', settingsData);
     setErrors(errorsData);
     setPolicies(policiesData);
-    if (version) {
-      setVersionInfo(version);
-    }
-    if (shardsData) {
-      setShards(shardsData);
-    }
-    if (allocationData) {
-      setAllocation(allocationData);
-    }
-    if (settingsData) {
-      console.log('Setting settings state with:', settingsData);
-      console.log('Settings keys:', Object.keys(settingsData));
-      setSettings(settingsData);
-    }
-    if (nodesStatsData) {
-      setNodesStats(nodesStatsData);
-    }
-    if (pipelinesData) {
-      setPipelines(pipelinesData);
+    if (version) setVersionInfo(version);
+    if (shardsData) setShards(shardsData);
+    if (allocationData) setAllocation(allocationData);
+    if (settingsData) setSettings(settingsData);
+    if (nodesStatsData) setNodesStats(nodesStatsData);
+    if (pipelinesData) setPipelines(pipelinesData);
+    if (mlDetectorsData) {
+      console.log('Setting ML detectors data:', mlDetectorsData);
+      setMlDetectors(mlDetectorsData);
     }
   };
-
-  // Debug log whenever settings changes
-  React.useEffect(() => {
-    console.log('Settings state updated:', settings);
-    console.log('Settings keys:', settings ? Object.keys(settings) : 'null');
-  }, [settings]);
 
   if (!errors || !policies) {
     return (
@@ -175,6 +161,17 @@ export function SplitView() {
                 <Clock className="w-4 h-4 inline-block mr-2" />
                 ILM
               </Link>
+              <Link
+                to="/ml"
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  location.pathname === '/ml'
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Brain className="w-4 h-4 inline-block mr-2" />
+                ML Jobs
+              </Link>
               <div className="flex items-center gap-4">
                 <ThemeToggle />
                 <button
@@ -188,6 +185,7 @@ export function SplitView() {
                     setSettings(null);
                     setNodesStats(null);
                     setPipelines(null);
+                    setMlDetectors(null);
                   }}
                   className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 hover:border-blue-800 dark:hover:border-blue-300 rounded-md"
                 >
@@ -276,6 +274,24 @@ export function SplitView() {
           } />
           <Route path="/pipeline" element={nodesStats && <IngestPipelineView stats={nodesStats} pipelines={pipelines || undefined} />} />
           <Route path="/ilm" element={<ILMView policies={policies} />} />
+          <Route
+            path="/ml"
+            element={
+              mlDetectors ? (
+                <MLAnomalyDetectorsView detectors={mlDetectors} />
+              ) : (
+                <div className="text-center py-12">
+                  <Brain className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                    ML Jobs Not Available
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No machine learning jobs information is available in the uploaded diagnostic data.
+                  </p>
+                </div>
+              )
+            }
+          />
         </Routes>
       </div>
     </div>
